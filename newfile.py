@@ -28,7 +28,7 @@ async def handle_ku(message: types.Message):
 @dp.message(Command("music"))
 async def cmd_music(message: types.Message):
     await message.answer("Подождите пару секунд...")
-    open("/storage/emulated/0/Download/zweielephanten.mp3", "rb") as audio_file:
+    with open("/Download/zweielephanten.mp3", "rb") as audio_file:
     sent = await bot.send_audio(chat_id=message.chat.id,
     audio=audio_file,
     title="Zwei Elefanten",
