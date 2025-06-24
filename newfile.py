@@ -41,7 +41,7 @@ async def cmd_music(message: types.Message):
     else:
         # Загружаем файл и сохраняем file_id для следующего раза
         try:
-            with open("zweielephanten", "rb") as audio_file:
+            with open("zweielephanten.mp3", "rb") as audio_file:
                 sent = await bot.send_audio(
                     chat_id=message.chat.id,
                     audio=audio_file,
