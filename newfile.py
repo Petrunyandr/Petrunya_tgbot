@@ -27,27 +27,12 @@ async def handle_ku(message: types.Message):
 
 @dp.message(Command("music"))
 async def cmd_music(message: types.Message):
-    global cached_audio_id
     await message.answer("Подождите пару секунд...")
-
-    if cached_audio_id:
-        # Отправляем по file_id — экономим трафик
-        await bot.send_audio(
-            chat_id=message.chat.id,
-            audio=cached_audio_id,
-            title="Zwei Elefanten",
-            performer="Наталия Владимировна"
-        )
-    else:
-        # Загружаем файл и сохраняем file_id для следующего раза
-        try:
-            with open("/storage/emulated/0/Download/zweielephanten.mp3", "rb") as audio_file:
-                sent = await bot.send_audio(
-                    chat_id=message.chat.id,
-                    audio=audio_file,
-                    title="Zwei Elefanten",
-                    performer="Наталия Владимировна"
-                )
+    open("/storage/emulated/0/Download/zweielephanten.mp3", "rb") as audio_file:
+    sent = await bot.send_audio(chat_id=message.chat.id,
+    audio=audio_file,
+    title="Zwei Elefanten",
+    performer="Наталия Владимировна")
                 cached_audio_id = sent.audio.file_id
         except FileNotFoundError:
             await message.answer("Файл zweielephanten.mp3 не найден!")
