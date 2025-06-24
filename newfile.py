@@ -1,46 +1,37 @@
 import asyncio
-from aiogram import Bot, Dispatcher, types
-from aiogram.types import BotCommand
-from aiogram.utils import executor
+import telebot as t
+from telebot import types
 
-TOKEN = '7975402209:AAGilNMkPgXsoevUdWb-ZCovt2vOtPS9vGs'
+# Создаём асинхронный бот
+bot = t.AsyncTeleBot('7975402209:AAGilNMkPgXsoevUdWb-ZCovt2vOtPS9vGs')
 
-bot = Bot(token=TOKEN)
-dp = Dispatcher(bot)
+bot.set_my_commands([
+    types.BotCommand("/start", "начать работy"),
+    types.BotCommand("/music", "послушать музыку ")
+])
 
-# Установка команд бота
-async def set_commands():
-    commands = [
-        BotCommand(command="/start", description="начать работу"),
-        BotCommand(command="/music", description="послушать музыку"),
-    ]
-    await bot.set_my_commands(commands)
+@bot.message_handler(commands=['start'])
+async def start(message):
+    await bot.send_message(message.from_user.id, "пр")
+    # сори
 
-@dp.message_handler(commands=['start'])
-async def start(message: types.Message):
-    await message.answer("пр")
-    # или await bot.send_message(message.from_user.id, "пр")
+@bot.message_handler(func=lambda message: message.text and message.text.lower() == "ку")
+async def ku(message):
+    await bot.send_message(message.chat.id, "нет")
 
-@dp.message_handler(lambda message: message.text and message.text.lower() == "ку")
-async def ku(message: types.Message):
-    await message.answer("нет")
-
-@dp.message_handler(commands=['music'])
-async def music(message: types.Message):
-    await message.answer("подождите пару секунд")
-
-    # Открываем файл асинхронно (лучше синхронно, но без блокировки main event loop)
-    # Для простоты откроем синхронно, т.к. aiogram send_audio не поддерживает async stream
-    with open('/storage/emulated/0/Download/zweielephanten', 'rb') as voice:
-        await bot.send_audio(chat_id=message.chat.id,
-                             audio=voice,
-                             title="Zwei elefanten",
-                             performer="Наталия Владимировна")
+@bot.message_handler(commands=['music'])
+async def music(message):
+    await bot.send_message(message.from_user.id, "подождите пару секунд")
+    voice = open('/storage/emulated/0/Download/zweielephanten', 'rb')
+    await bot.send_audio(message.chat.id,
+                         voice,
+                         title="Zwei elefanten",
+                         performer="Наталия Владимировна")
+    voice.close()
 
 async def main():
-    await set_commands()
-    # Запуск бота
-    await dp.start_polling()
+    await bot.set_webhook()  # если используешь webhook, иначе можно убрать
+    await bot.polling()
 
 if __name__ == '__main__':
     asyncio.run(main())
