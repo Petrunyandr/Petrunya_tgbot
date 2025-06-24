@@ -8,9 +8,8 @@ API_TOKEN = "7975402209:AAGilNMkPgXsoevUdWb-ZCovt2vOtPS9vGs"
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
 
-cached_audio_id = None  # Глобальная переменная для file_id аудио
+cached_audio_id = None  # Здесь будет храниться file_id аудио
 
-# Устанавливаем команды бота (чтобы в меню отображались)
 async def set_commands():
     commands = [
         BotCommand(command="start", description="Начать работу"),
@@ -20,7 +19,7 @@ async def set_commands():
 
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
-    await message.answer("Привет!")
+    await message.answer("Привет! Напиши /music, чтобы послушать музыку.")
 
 @dp.message(lambda message: message.text and message.text.lower() == "ку")
 async def handle_ku(message: types.Message):
@@ -32,32 +31,31 @@ async def cmd_music(message: types.Message):
     await message.answer("Подождите пару секунд...")
 
     if cached_audio_id:
-        # Отправляем кэшированное аудио по file_id
+        # Отправляем по file_id — экономим трафик
         await bot.send_audio(
             chat_id=message.chat.id,
             audio=cached_audio_id,
-            title="Zwei elefanten",
+            title="Zwei Elefanten",
             performer="Наталия Владимировна"
         )
     else:
-        # Отправляем файл и сохраняем file_id
-        path = "/storage/emulated/0/Download/zweielephanten"  # путь к файлу
-        with open(path, "rb") as voice:
-            sent_message = await bot.send_audio(
-                chat_id=message.chat.id,
-                audio=voice,
-                title="Zwei elefanten",
-                performer="Наталия Владимировна"
-            )
-            cached_audio_id = sent_message.audio.file_id
+        # Загружаем файл и сохраняем file_id для следующего раза
+        try:
+            with open("zweielephanten", "rb") as audio_file:
+                sent = await bot.send_audio(
+                    chat_id=message.chat.id,
+                    audio=audio_file,
+                    title="Zwei Elefanten",
+                    performer="Наталия Владимировна"
+                )
+                cached_audio_id = sent.audio.file_id
+        except FileNotFoundError:
+            await message.answer("Файл zweielephanten.mp3 не найден!")
 
 async def main():
     await set_commands()
-    try:
-        print("Бот запущен...")
-        await dp.start_polling(bot)
-    finally:
-        await bot.session.close()
+    print("Бот запущен")
+    await dp.start_polling(bot)
 
 if __name__ == "__main__":
     asyncio.run(main())
