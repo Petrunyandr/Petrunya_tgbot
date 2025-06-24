@@ -1,14 +1,13 @@
 import asyncio
+import os
 from aiogram import Bot, Dispatcher, types
-from aiogram.types import BotCommand
 from aiogram.filters import Command
+from aiogram.types import BotCommand
 
 API_TOKEN = "7975402209:AAGilNMkPgXsoevUdWb-ZCovt2vOtPS9vGs"
 
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
-
-cached_audio_id = None  # Здесь будет храниться file_id аудио
 
 async def set_commands():
     commands = [
@@ -21,36 +20,23 @@ async def set_commands():
 async def cmd_start(message: types.Message):
     await message.answer("Привет! Напиши /music, чтобы послушать музыку.")
 
-@dp.message(lambda message: message.text and message.text.lower() == "ку")
-async def handle_ku(message: types.Message):
-    await message.answer("нет")
-
 @dp.message(Command("music"))
 async def cmd_music(message: types.Message):
-    global cached_audio_id
     await message.answer("Подождите пару секунд...")
 
-    if cached_audio_id:
-        # Отправляем по file_id — экономим трафик
-        await bot.send_audio(
-            chat_id=message.chat.id,
-            audio=cached_audio_id,
-            title="Zwei Elefanten",
-            performer="Наталия Владимировна"
-        )
+    # Строим путь к файлу, находящемуся рядом с этим .py файлом
+    file_path = os.path.join(os.path.dirname(__file__), "zweielephanten.mp3")
+
+    if os.path.exists(file_path):
+        with open(file_path, "rb") as audio_file:
+            await bot.send_audio(
+                chat_id=message.chat.id,
+                audio=audio_file,
+                title="Zwei Elefanten",
+                performer="Наталия Владимировна"
+            )
     else:
-        # Загружаем файл и сохраняем file_id для следующего раза
-        try:
-            with open("zweielephanten.mp3", "rb") as audio_file:
-                sent = await bot.send_audio(
-                    chat_id=message.chat.id,
-                    audio=audio_file,
-                    title="Zwei Elefanten",
-                    performer="Наталия Владимировна"
-                )
-                cached_audio_id = sent.audio.file_id
-        except FileNotFoundError:
-            await message.answer("Файл zweielephanten.mp3 не найден!")
+        await message.answer("Файл музыки не найден 😢")
 
 async def main():
     await set_commands()
