@@ -15,7 +15,7 @@ types.BotCommand("/music", "послушать музыку ")
 @bot.message_handler(commands=['start'])
 async def start(message):
 	await
-    bot.send_message(message.from_user.id, "пр")
+	bot.send_message(message.from_user.id, "пр")
 #сори
 
 @bot.message_handler(func=lambda
@@ -37,9 +37,9 @@ async def music(message):
 	performer="Наталия Владимировна")
 	voice.close()
 async def main():
-    await bot.set_webhook()  # если используешь webhook, иначе можно убрать
-    await bot.polling()
+	await bot.set_webhook()  # если используешь webhook, иначе можно убрать
+	await bot.polling()
 
 if __name__ == '__main__':
-    asyncio.run(main())
-bot.polling(none_stop=True)
+	asyncio.run(main())
+	bot.polling(none_stop=True)
