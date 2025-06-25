@@ -7,7 +7,7 @@ import aiohttp
 API_TOKEN = "7975402209:AAGilNMkPgXsoevUdWb-ZCovt2vOtPS9vGs"  # Замените на токен вашего бота
 
 # Ссылка на raw-версию MP3-файла с GitHub
-GITHUB_AUDIO_URL = "https://github.com/Petrunyandr/Petrunya_tgbot/blob/main/zweielephanten.mp3"
+GITHUB_AUDIO_URL = "https://raw.githubusercontent.com/Petrunyandr/Petrunya_tgbot/main/zweielephanten.mp3"
 
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
