@@ -5,7 +5,7 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.types import BotCommand, FSInputFile
 load_dotenv()
-API_TOKEN = os.getenv("TOKEN")  сори
+API_TOKEN = os.getenv("TOKEN") 
 dp = Dispatcher()
 
 # Устанавливаем команды бота
