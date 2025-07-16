@@ -1,12 +1,11 @@
 import asyncio
 import os
+from dotenv import load_dotenv
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.types import BotCommand, FSInputFile
-
-API_TOKEN = "7975402209:AAGilNMkPgXsoevUdWb-ZCovt2vOtPS9vGs"  # 🔐 Замени на свой токен от @BotFather
-
-bot = Bot(token=API_TOKEN)
+load_dotenv()
+API_TOKEN = os.getenv("TOKEN")  сори
 dp = Dispatcher()
 
 # Устанавливаем команды бота
