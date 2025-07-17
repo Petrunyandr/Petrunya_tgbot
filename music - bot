@@ -1,7 +1,0 @@
-cd ~/мой_бот_на_айограм
-git init
-git remote add origin https://github.com/ТВОЙ_ЛОГИН/ТВОЙ_РЕПОЗИТОРИЙ.git
-git branch -M main
-git add .
-git commit -m "Первый коммит"
-git push -u origin main
