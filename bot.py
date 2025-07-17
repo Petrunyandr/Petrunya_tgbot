@@ -1,52 +1,20 @@
-import asyncio
-import os
-from dotenv import load_dotenv
-from aiogram import Bot, Dispatcher, types
-from aiogram.filters import Command
-from aiogram.types import BotCommand, FSInputFile
-load_dotenv()
-API_TOKEN = os.getenv("TOKEN") 
-dp = Dispatcher()
+import telebot as t
+from telebot import types
+bot = t.TeleBot('7975402209:AAGilNMkPgXsoevUdWb-ZCovt2vOtPS9vGs')
+bot.set_my_commands([
+types.BotCommand("start", 'начать работу😁'),
+types.BotCommand("music", 'послушать ')
+])
 
-# Устанавливаем команды бота
-async def set_commands():
-    commands = [
-        BotCommand(command="start", description="Начать работу"),
-        BotCommand(command="music", description="Слушать музыку"),
-    ]
-    await bot.set_my_commands(commands)
 
-# Обработка команды /start
-@dp.message(Command("start"))
-async def cmd_start(message: types.Message):
-    await message.answer("Привет! Напиши /music, чтобы послушать музыку 🎶")
+@bot.message_handler(commands=['start'])
+def start(message):
+    bot.send_message(message.from_user.id, "пр")
+#сори
 
-# Обработка команды /music
-@dp.message(Command("music"))
-async def cmd_music(message: types.Message):
-    await message.answer("🎧 Подождите пару секунд, загружаю музыку...")
+@bot.message_handler(func=lambda
+message: message.text.lower() == "ку")
+def ku(message):
+	bot.send_message(message.chat.id, "нет")
 
-    # Путь к файлу
-    path = os.path.join(os.path.dirname(__file__), "zweielephanten.mp3")
-
-    # Проверка существования
-    if os.path.exists(path):
-        audio = FSInputFile(path)
-        await bot.send_audio(
-            chat_id=message.chat.id,
-            audio=audio,
-            title="Zwei Elefanten",
-            performer="Наталия Владимировна"
-        )
-    else:
-        await message.answer("😢 Музыка не найдена. Убедитесь, что файл рядом с bot.py")
-
-# Запуск
-async def main():
-    await set_commands()
-    await bot.delete_webhook(drop_pending_updates=True)
-    print("✅ Бот запущен")
-    await dp.start_polling(bot)
-
-if __name__ == "__main__":
-    asyncio.run(main())
+bot.polling(none_stop=True)
