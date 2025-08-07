@@ -1,5 +1,5 @@
 #Petrunya_tgbot
-Это простой Telegram-бот на Python, созданный с использованием библиотеки [pyTelegramBotAPI](https://github.com/eternnoir/pyTelegramBotAPI).  
+Это простой Telegram-бот на Python(пока находится на стадии разработки), созданный с использованием библиотеки [pyTelegramBotAPI](https://github.com/eternnoir/pyTelegramBotAPI).  
 Бот умеет:
 
 - Отвечать на команду `/start`
