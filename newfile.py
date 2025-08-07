@@ -26,11 +26,19 @@ bot.set_my_commands([
 def start(message):
     bot.send_message(message.chat.id, "Привет! Напиши /music, чтобы послушать музыку 🎧")
 
-# Команда /music
 @bot.message_handler(commands=['music'])
-def music(message):
-    audio_url = "https://github.com/Petrunyandr/Petrunya_tgbot/blob/main/zweielephanten.mp3"  # замени на свою ссылку
-    bot.send_audio(message.chat.id, audio=audio_url, caption="Вот твоя музыка 🎶")
+def send_music(message):
+    audio_url = (
+        "https://raw.githubusercontent.com/"
+        "Petrunyandr/Petrunya_tgbot/main/zweielephanten.mp3"
+    )
+    bot.send_audio(
+        chat_id=message.chat.id,
+        audio=audio_url,
+        caption="нез",
+        title="Zwei Elephanten",         
+        performer="Наталия Владимировна"   
+    )
 @bot.message_handler(func=lambda message: message.text.lower() == "ку")
 def ku(message):
     bot.send_message(message.chat.id, "нет")
