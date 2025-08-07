@@ -50,5 +50,4 @@ def send_music(message):
 def ku(message):
     bot.send_message(message.chat.id, "нет")
 
-# Запуск бота
 bot.polling(none_stop=True)
