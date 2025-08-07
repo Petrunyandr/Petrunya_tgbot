@@ -1,11 +1,17 @@
+print("👀 Бот запускается...")
+
 import os
 from dotenv import load_dotenv
 import telebot as t
 from telebot import types
 
-# Загружаем окруж.
+print("✅ Импорт выполнен")
+
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
+
+if not BOT_TOKEN:
+    raise Exception("❌ BOT_TOKEN не найден в переменных окружения")
 
 bot = t.TeleBot(BOT_TOKEN)
 
