@@ -1,5 +1,6 @@
-print("👀 Бот запускается...")
 
+print("👀 Бот запускается...")
+import requests
 import os
 from dotenv import load_dotenv
 import telebot as t
@@ -28,10 +29,24 @@ def start(message):
 
 # Команда /music
 @bot.message_handler(commands=['music'])
-def music(message):
-    audio_url = "https://github.com/Petrunyandr/Petrunya_tgbot/blob/main/zweielephanten.mp3"  # замени на свою ссылку
-    bot.send_audio(message.chat.id, audio=audio_url, caption="Вот твоя музыка 🎶")
-@bot.message_handler(func=lambda message: message.text.lower() == "ку")
+def send_music(message):
+    url = "https://raw.githubusercontent.com/Petrunyandr/Petrunya_tgbot/main/zweielephanten.mp3"
+    r = requests.get(url)
+
+    if r.ok:
+        with open("temp.mp3", "wb") as f:
+            f.write(r.content)
+
+        with open("temp.mp3", "rb") as audio:
+            bot.send_audio(
+                message.chat.id,
+                audio=audio,
+                caption="🎵 Вот твоя музыка!",
+                title="Zwei Elephanten",
+                performer="Petrunya Orchestra"
+            )
+    else:
+        bot.send_message(message.chat.id, "❌ Ошибка при скачивании аудио.")@bot.message_handler(func=lambda message: message.text.lower() == "ку")
 def ku(message):
     bot.send_message(message.chat.id, "нет")
 
