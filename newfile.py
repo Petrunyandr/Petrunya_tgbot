@@ -23,7 +23,7 @@ def start(message):
 # Команда /music
 @bot.message_handler(commands=['music'])
 def music(message):
-    audio_url = "https://github.com/username/repo/raw/main/music/zweielephanten.mp3"  # замени на свою ссылку
+    audio_url = "https://github.com/Petrunyandr/Petrunya_tgbot/blob/main/zweielephanten.mp3"  # замени на свою ссылку
     bot.send_audio(message.chat.id, audio=audio_url, caption="Вот твоя музыка 🎶")
 @bot.message_handler(func=lambda message: message.text.lower() == "ку")
 def ku(message):
