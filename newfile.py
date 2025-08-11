@@ -42,7 +42,7 @@ def send_music(message):
 def ku(message):
     bot.send_message(message.chat.id, "нет")
 
-@bot.message_handler(func=lambda message: message.text.lower() == "спс" or "спасибо")
+@bot.message_handler(func=lambda message: message.text.lower() in ("спс", "спасибо", "о спс")
 def sps(message):
     bot.send_message(message.chat.id, "нез")
 
