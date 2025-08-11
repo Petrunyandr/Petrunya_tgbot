@@ -28,13 +28,14 @@ def start(message):
 
 @bot.message_handler(commands=['music'])
 def send_music(message):
-    music_id = "CQACAgIAAxkBAAE5Vd1omdUEdweQlxY-fQkrrkNmjqV7hgACUW0AAklmAAFL-wKswKyHlAY2BA"
     bot.send_audio(
         chat_id=message.chat.id,
-        audio=music_id,
-        title="Zwei elefanten", 
-        performer="Наталия Владимировна",  
-        caption="Вот твоя музыка! 🎵"
+        audio="CQACAgIAAxkBAAE5Vd1omdUEdweQlxY-fQkrrkNmjqV7hgACUW0AAklmAAFL-wKswKyHlAY2BA",  
+        title="Zwei elefanten",
+        performer="Наталия Владимировна",
+        duration=97, 
+        thumb="AgACAgIAAxkBAAE5VrRomeUHQxEHMGSM9JcrOfrhLz33VgACofIxG0XU0EjGe6tLrtgYMAEAAwIAA3cAAzYE",
+        caption="лутай"
     )
 
 @bot.message_handler(func=lambda message: message.text.lower() == "ку")
