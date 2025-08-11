@@ -74,7 +74,7 @@
 ## Зависимости
 
 * telebot
-
+* python-dotenv
 
 ---
 
