@@ -63,7 +63,10 @@ def set_webhook():
 if __name__ == "__main__":
     bot.remove_webhook()
     bot.set_webhook(url=f"{APP_URL}/{BOT_TOKEN}")
-port = int(os.environ.get("PORT", 5000))
-if os.environ.get("PORT",
-"5000").isdigit() else 5000
+port = os.environ.get("PORT", "5000")  # По умолчанию 5000, если PORT не установлен
+try:
+    port = int(port)
+except ValueError:
+    port = 5000  # Значение по умолчанию, если преобразование не удалось
+
 server.run(host="0.0.0.0", port=port)
