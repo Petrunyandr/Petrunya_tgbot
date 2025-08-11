@@ -34,9 +34,15 @@ def start(message):
 
 # Команда /music
 @bot.message_handler(commands=['music'])
-def music(message):
-    audio_url = "https://github.com/Petrunyandr/Petrunya_tgbot/raw/main/zweielephanten.mp3"
-    bot.send_audio(message.chat.id, audio=audio_url, caption="Вот твоя музыка 🎶")
+def send_music(message):
+    music_id = "CQACAgIAAxkBAAE5Vd1omdUEdweQlxY-fQkrrkNmjqV7hgACUW0AAklmAAFL-wKswKyHlAY2BA"
+    bot.send_audio(
+        chat_id=message.chat.id,
+        audio=music_id,
+        title="Zwei elefanten",  # Название трека
+        performer="Наталия Владимировна",  # Исполнитель
+        caption="Вот твоя музыка! 🎵"
+    )
 
 @bot.message_handler(func=lambda message: message.text.lower() == "ку")
 def ku(message):
