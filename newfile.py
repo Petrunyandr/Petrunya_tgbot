@@ -42,6 +42,14 @@ def send_music(message):
 def ku(message):
     bot.send_message(message.chat.id, "нет")
 
+@bot.message_handler(func=lambda message: message.text.lower() == "пр")
+def pr(message):
+    bot.send_message(message.chat.id, "Сори")
+
+@bot.message_handler(func=lambda message: message.text.lower() == "ебало")
+def ebalo(message):
+    bot.send_message(message.chat.id, "сам")
+
 @server.route("/", methods=['GET'])
 def home():
     return "Бот работает 👌"
