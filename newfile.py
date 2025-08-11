@@ -56,7 +56,7 @@ def ebalo(message):
 
 @bot.message_handler(func=lambda message: message.text.lower() in ("иди нахуй", "иди нахуц", "иди назуй", "иди в пизду", "иди в пиздц"))
 def mneme(message):
-    bot.send_message(message.chat.id, "я твою мать ебал пидорас ебаный блять, тебя Санëк не простит, ты это понимаешь?")
+    bot.send_message(message.chat.id,"не буду🤣🤣🤣")
 
 @bot.message_handler(func=lambda message: message.text.lower() == "сори")
 def jdnd(message):
