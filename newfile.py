@@ -10,37 +10,30 @@ print("✅ Импорт выполнен")
 
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-APP_URL = os.getenv("APP_URL")  # например, https://mybot.onrender.com
-
-if not BOT_TOKEN:
-    raise Exception("❌ BOT_TOKEN не найден в переменных окружения")
-
-if not APP_URL:
-    raise Exception("❌ APP_URL не найден (укажи URL Render сервиса в переменных окружения)")
+APP_URL = os.getenv("APP_URL") 
 
 bot = t.TeleBot(BOT_TOKEN)
 server = Flask(__name__)
 
-# Устанавливаем команды
 bot.set_my_commands([
     types.BotCommand("start", "начать работу 😁"),
     types.BotCommand("music", "послушать музыку 🎵")
 ])
 
-# Команда /start
+
 @bot.message_handler(commands=['start'])
 def start(message):
     bot.send_message(message.chat.id, "Привет! Напиши /music, чтобы послушать музыку 🎧")
 
-# Команда /music
+
 @bot.message_handler(commands=['music'])
 def send_music(message):
     music_id = "CQACAgIAAxkBAAE5Vd1omdUEdweQlxY-fQkrrkNmjqV7hgACUW0AAklmAAFL-wKswKyHlAY2BA"
     bot.send_audio(
         chat_id=message.chat.id,
         audio=music_id,
-        title="Zwei elefanten",  # Название трека
-        performer="Наталия Владимировна",  # Исполнитель
+        title="Zwei elefanten", 
+        performer="Наталия Владимировна",  
         caption="Вот твоя музыка! 🎵"
     )
 
@@ -48,12 +41,10 @@ def send_music(message):
 def ku(message):
     bot.send_message(message.chat.id, "нет")
 
-# Flask route для проверки
 @server.route("/", methods=['GET'])
 def home():
     return "Бот работает 👌"
 
-# Flask route для Telegram webhook
 @server.route(f"/{BOT_TOKEN}", methods=['POST'])
 def webhook():
     json_str = request.get_data().decode("UTF-8")
@@ -61,7 +52,6 @@ def webhook():
     bot.process_new_updates([update])
     return "!", 200
 
-# Установка webhook
 def set_webhook():
     bot.remove_webhook()
     bot.set_webhook(url=f"{APP_URL}/{BOT_TOKEN}")
