@@ -1,6 +1,6 @@
 # Petrunya\_tgbot
 
-Простой Telegram-бот на Python, созданный с использованием библиотеки [pyTelegramBotAPI](https://github.com/eternnoir/pyTelegramBotAPI).
+Простой Telegram-бот на Python, созданный с использованием библиотеки [telebot](https://github.com/eternnoir/pyTelegramBotAPI).
 
 ---
 
@@ -73,11 +73,8 @@
 
 ## Зависимости
 
-* pyTelegramBotAPI
-* python-dotenv
-* requests
+* telebot
 
-Все зависимости перечислены в файле `requirements.txt`.
 
 ---
 
