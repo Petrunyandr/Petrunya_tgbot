@@ -34,7 +34,7 @@ def send_music(message):
         title="Zwei elefanten",
         performer="Наталия Владимировна",
         duration=97, 
-        thumb="AgACAgIAAxkBAAE5VrRomeUHQxEHMGSM9JcrOfrhLz33VgACofIxG0XU0EjGe6tLrtgYMAEAAwIAA3cAAzYE",
+        thumb="AgACAgIAAxkBAAE5VtJomedGl-yTo_nWnBKnI5xYZKa6rQACwvIxG0XU0EjhdZOl1E3voAEAAwIAA3MAAzYE",
         caption="лутай"
     )
 
