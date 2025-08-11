@@ -120,4 +120,5 @@ def ale(message):
 
 if __name__ == "__main__":
     print("🚀 Бот запущен (polling)")
+    bot.delete_webhook()
     bot.infinity_polling(skip_pending=True)
