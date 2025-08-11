@@ -62,4 +62,6 @@ def set_webhook():
     bot.set_webhook(url=f"{APP_URL}/{BOT_TOKEN}")
 
 if __name__ == "__main__":
+    bot.remove_webhook()
+    bot.set_webhook(url=f"{APP_URL}/{BOT_TOKEN}")
     server.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
