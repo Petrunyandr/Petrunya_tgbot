@@ -44,7 +44,7 @@ def ku(message):
 
 @bot.message_handler(func=lambda message: message.text.lower() == "пр")
 def pr(message):
-    bot.send_message(message.chat.id, "Сори")
+    bot.send_message(message.chat.id, "пр")
 
 @bot.message_handler(func=lambda message: message.text.lower() == "ебало")
 def ebalo(message):
