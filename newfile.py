@@ -54,6 +54,14 @@ def pr(message):
 def ebalo(message):
     bot.send_message(message.chat.id, "сам")
 
+@bot.message_handler(func=lambda message: message.text.lower() in ("иди нахуй", "иди нахуц", "иди назуй", "иди в пизду", "иди в пиздц"))
+def mneme(message):
+    bot.send_message(message.chat.id, "я твою мать ебал пидорас ебаный блять, тебя Санëк не простит, ты это понимаешь?")
+
+@bot.message_handler(func=lambda message: message.text.lower() == "сори")
+def jdnd(message):
+    bot.send_message(message.chat.id, "прощон")
+
 @bot.message_handler(func=lambda message: message.text.lower() == "але")
 def ale(message):
     bot.send_message(message.chat.id, "туда")
