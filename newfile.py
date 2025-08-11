@@ -56,7 +56,6 @@ def webhook():
     return "!", 200
 
 # Установка webhook
-@server.before_first_request
 def set_webhook():
     bot.remove_webhook()
     bot.set_webhook(url=f"{APP_URL}/{BOT_TOKEN}")
