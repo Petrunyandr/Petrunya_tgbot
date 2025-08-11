@@ -26,15 +26,30 @@ def start(message):
     bot.send_message(message.chat.id, "Привет! Напиши /music, чтобы послушать музыку 🎧")
 
 
+track1 = {
+    "file_id": "CQACAgIAAxkBAAE5Vd1omdUEdweQlxY-fQkrrkNmjqV7hgACUW0AAklmAAFL-wKswKyHlAY2BA",
+    "title": "Zwei elefanten",
+    "performer": "Наталия Владимировна",
+    "duration": 97,
+    "thumb": "AgACAgIAAxkBAAE5VrRomeUHQxEHMGSM9JcrOfrhLz33VgACofIxG0XU0EjGe6tLrtgYMAEAAwIAA3cAAzYE"
+}
+track2 = {
+    "title": "Stayin' Alive",
+    "performer": "Bee Gees",
+     "file_id": "CQACAgIAAxkBAAE5XANomjbLqBFMyrD2rl51Aw1ToPe4EwACVm8AApsyeUgiDrL8jRWk1TYE",
+    "duration": 120
+}
+
 @bot.message_handler(commands=['music'])
-def send_music(message):
+def send_random_music(message):
+    chosen_track = random.choice([track1, track2])
     bot.send_audio(
         chat_id=message.chat.id,
-        audio="CQACAgIAAxkBAAE5Vd1omdUEdweQlxY-fQkrrkNmjqV7hgACUW0AAklmAAFL-wKswKyHlAY2BA",  
-        title="Zwei elefanten",
-        performer="Наталия Владимировна",
-        duration=97, 
-        thumb="AgACAgIAAxkBAAE5VtJomedGl-yTo_nWnBKnI5xYZKa6rQACwvIxG0XU0EjhdZOl1E3voAEAAwIAA3MAAzYE",
+        audio=chosen_track["file_id"],
+        title=chosen_track["title"],
+        performer=chosen_track["performer"],
+        duration=chosen_track["duration"],
+        thumb=chosen_track["thumb"],
         caption="лутай"
     )
 
