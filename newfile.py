@@ -50,6 +50,10 @@ def pr(message):
 def ebalo(message):
     bot.send_message(message.chat.id, "сам")
 
+@bot.message_handler(func=lambda message: message.text.lower() == "але")
+def ale(message):
+    bot.send_message(message.chat.id, "туда")
+
 @server.route("/", methods=['GET'])
 def home():
     return "Бот работает 👌"
