@@ -8,6 +8,7 @@ from telebot import types
 
 from db import Database
 
+
 load_dotenv()
 logging.basicConfig(
     level=logging.INFO,
