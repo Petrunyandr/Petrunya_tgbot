@@ -1,2 +1,4 @@
 .env
 bot.log
+database.db
+__pycache__/

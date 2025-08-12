@@ -1,13 +1,16 @@
 import logging
 import os
 import random
+
 import telebot as t
 from dotenv import load_dotenv
 from telebot import types
 
+from db import Database
+
 load_dotenv()
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
         logging.FileHandler("bot.log", encoding="utf-8"),
@@ -17,136 +20,143 @@ logging.basicConfig(
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
-bot = t.TeleBot(BOT_TOKEN)
 
-bot.set_my_commands(
-    [
-        types.BotCommand("start", "начать работу 😁"),
-        types.BotCommand("music", "послушать музыку 🎵"),
-    ]
-)
+class Bot:
+    def __init__(self):
+        self.bot = t.TeleBot(BOT_TOKEN)
+        self.db = Database()
+        self.setup_commands()
 
-# Изначальные треки
-track1 = {
-    "file_id": "CQACAgIAAxkBAAE5Vd1omdUEdweQlxY-fQkrrkNmjqV7hgACUW0AAklmAAFL-wKswKyHlAY2BA",
-    "title": "Zwei elefanten",
-    "performer": "Наталия Владимировна",
-    "duration": 97,
-}
-track2 = {
-    "file_id": "CQACAgIAAyEFAASV6D8-AAIF-WiaPbD10kdILCq1F8QlxKT-EHMwAAI4hwAC17LQSClF2JMqiy5bNgQ",
-    "title": "СКОРАЙШЕГО ВЫЗДОРОВЛЕНИЯ",
-    "performer": "ГАПОРД",
-    "duration": 182,
-}
-track3 = {
-    "file_id": "CQACAgIAAxkBAAE5XANomjbLqBFMyrD2rl51Aw1ToPe4EwACVm8AApsyeUgiDrL8jRWk1TYE",
-    "title": "Stayin' alive",
-    "performer": "Bee Gees",
-    "duration": 287,
-}
+    def setup_commands(self):
+        self.bot.set_my_commands(
+            [
+                types.BotCommand("start", "начать работу 😁"),
+                types.BotCommand("music", "послушать музыку 🎵"),
+                types.BotCommand("list", "список треков 📜"),
+            ]
+        )
 
+        self.bot.message_handler(commands=["start"])(self.start)
+        self.bot.message_handler(commands=["music"])(self.send_random_music)
+        self.bot.message_handler(commands=["list"])(self.list_tracks)
+        self.bot.message_handler(content_types=["audio", "voice"])(self.get_file_id)
 
-saved_tracks = {
-    track1["file_id"]: track1,
-    track2["file_id"]: track2,
-    track3["file_id"]: track3,
-}
+        self.bot.message_handler(
+            func=lambda m: m.text.lower() in ["пр", "ку", "qq", "pr", "qu", "ku"]
+        )(self.ku)
+        self.bot.message_handler(
+            func=lambda m: m.text.lower() in ("спс", "спасибо", "о спс")
+        )(self.sps)
+        self.bot.message_handler(func=lambda m: m.text.lower() == "пр")(self.pr)
+        self.bot.message_handler(
+            func=lambda m: m.text.lower()
+            in ["ебало", "вальни ебало", "завали ебало", "ебло"]
+        )(self.ebalo)
+        self.bot.message_handler(
+            func=lambda m: m.text.lower()
+            in (
+                "иди нахуй",
+                "иди нахуц",
+                "иди назуй",
+                "иди в пизду",
+                "иди в пиздц",
+                "нахуй иди",
+                "назуй иди",
+            )
+        )(self.mneme)
+        self.bot.message_handler(func=lambda m: m.text.lower() in ["сори", "сорян"])(
+            self.jdnd
+        )
+        self.bot.message_handler(func=lambda m: m.text.lower() == "але")(self.ale)
 
-@bot.message_handler(commands=["start"])
-def start(message):
-    bot.send_message(
-        message.chat.id, "Привет! Напиши /music, чтобы послушать музыку 🎧"
-    )
+    def start(self, message):
+        self.bot.send_message(
+            message.chat.id, "Привет! Напиши /music, чтобы послушать музыку 🎧"
+        )
 
-@bot.message_handler(content_types=["audio", "voice"])
-def get_file_id(message):
-    audio = message.audio or message.voice
-    if audio:
-        # Если это голосовое сообщение, у него нет метаданных как у аудио
+    def get_file_id(self, message):
+        audio = message.audio or message.voice
+        if not audio:
+            return
+
         if message.audio:
-            new_track = {
-                "file_id": audio.file_id,
-                "title": audio.title or "Без названия, сори",
-                "performer": audio.performer or "Неизвестный исполнитель, прости",
-                "duration": audio.duration,
-            }
+            title = audio.title or "Без названия"
+            performer = audio.performer or "Неизвестный исполнитель"
         else:
-            new_track = {
-                "file_id": audio.file_id,
-                "title": "Голосовое сообщение",
-                "performer": "Неизвестный",
-                "duration": audio.duration,
-            }
-        
-        # Сохраняем трек, если его еще нет в коллекции
-        if audio.file_id not in saved_tracks:
-            saved_tracks[audio.file_id] = new_track
-            logging.info(f"Сохранен новый трек: {new_track['title']} - {new_track['performer']}")
-            bot.send_message(message.chat.id, f"спс, трек сохранен в коллекцию!")
-        else:
-            bot.send_message(message.chat.id, "сори, этот трек уже есть в коллекции")
-        
-       
-        bot.send_message(message.chat.id, f"file_id для этого аудио:\n{audio.file_id}")
+            title = "Голосовое сообщение"
+            performer = "Неизвестный"
 
-@bot.message_handler(commands=["music"])
-def send_random_music(message):
-    logging.info(f"/music от {message.from_user.id} @{message.from_user.username}")
-       
-    
-    
-    chosen_track = random.choice(list(saved_tracks.values()))
-    try:
-        bot.send_audio(
-            chat_id=message.chat.id,
-            audio=chosen_track["file_id"],
-            title=chosen_track["title"],
-            performer=chosen_track["performer"],
-            duration=chosen_track["duration"],
-            caption="лутай",
-        )
-        logging.info(
-            f"Отправлена музыка '{chosen_track['title']}' пользователю {message.from_user.id}"
-        )
-    except Exception as e:
-        logging.error(f"Ошибка при отправке музыки: {e}")
+        try:
+            self.db.add_track(audio.file_id, title, performer, audio.duration)
+            logging.info(f"Сохранен трек {title} - {performer}")
+            self.bot.send_message(message.chat.id, f"Трек сохранён в базу данных!")
+        except Exception as e:
+            logging.error(f"Ошибка при сохранении трека: {e}")
+            self.bot.send_message(message.chat.id, "Не удалось сохранить трек :(")
 
+    def list_tracks(self, message):
+        try:
+            tracks = self.db.get_tracks()
+            if not tracks:
+                self.bot.send_message(message.chat.id, "В коллекции пока нет треков 😢")
+                return
 
-@bot.message_handler(func=lambda message: message.text.lower() == "ку")
-def ku(message):
-    bot.send_message(message.chat.id, "нет")
+            text = "🎵 Список треков:\n\n"
+            for i, tr in enumerate(tracks, 1):
+                text += f"{i}. {tr['title']} — {tr['performer']}\n"
 
-@bot.message_handler(
-    func=lambda message: message.text.lower() in ("спс", "спасибо", "о спс")
-)
-def sps(message):
-    bot.send_message(message.chat.id, "нез")
+            self.bot.send_message(message.chat.id, text)
+        except Exception as e:
+            logging.error(f"Ошибка при получении списка треков: {e}")
+            self.bot.send_message(
+                message.chat.id, "Ошибка при получении списка треков."
+            )
 
-@bot.message_handler(func=lambda message: message.text.lower() == "пр")
-def pr(message):
-    bot.send_message(message.chat.id, "пр")
+    def send_random_music(self, message):
+        try:
+            tracks = self.db.get_tracks()
+            if not tracks:
+                self.bot.send_message(message.chat.id, "В коллекции пока нет треков 😢")
+                return
 
-@bot.message_handler(func=lambda message: message.text.lower() == "ебало")
-def ebalo(message):
-    bot.send_message(message.chat.id, "сам")
+            chosen_track = random.choice(tracks)
+            self.bot.send_audio(
+                chat_id=message.chat.id,
+                audio=chosen_track["track_id"],
+                title=chosen_track["title"],
+                performer=chosen_track["performer"],
+                duration=chosen_track["duration"],
+                caption="лутай",
+            )
+        except Exception as e:
+            logging.error(f"Ошибка при отправке музыки: {e}")
+            self.bot.send_message(message.chat.id, "Ошибка при отправке музыки.")
 
-@bot.message_handler(
-    func=lambda message: message.text.lower()
-    in ("иди нахуй", "иди нахуц", "иди назуй", "иди в пизду", "иди в пиздц")
-)
-def mneme(message):
-    bot.send_message(message.chat.id, "не буду🤣🤣🤣")
+    def ku(self, message):
+        self.bot.send_message(message.chat.id, "нет")
 
-@bot.message_handler(func=lambda message: message.text.lower() == "сори")
-def jdnd(message):
-    bot.send_message(message.chat.id, "прощон")
+    def sps(self, message):
+        self.bot.send_message(message.chat.id, "нез")
 
-@bot.message_handler(func=lambda message: message.text.lower() == "але")
-def ale(message):
-    bot.send_message(message.chat.id, "туда")
+    def pr(self, message):
+        self.bot.send_message(message.chat.id, "пр")
+
+    def ebalo(self, message):
+        self.bot.send_message(message.chat.id, "сам")
+
+    def mneme(self, message):
+        self.bot.send_message(message.chat.id, "не буду🤣🤣🤣")
+
+    def jdnd(self, message):
+        self.bot.send_message(message.chat.id, "прощон")
+
+    def ale(self, message):
+        self.bot.send_message(message.chat.id, "туда")
+
+    def run(self):
+        print("🚀 Бот запущен (polling)")
+        self.bot.infinity_polling(skip_pending=True)
+
 
 if __name__ == "__main__":
-    print("🚀 Бот запущен (polling)")
-    print(f"В коллекции {len(saved_tracks)} треков")
-    bot.infinity_polling(skip_pending=True)
+    Bot().run()
