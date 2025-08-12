@@ -84,14 +84,16 @@ class Bot:
         else:
             title = "Голосовое сообщение"
             performer = "Неизвестный"
-
-        try:
-            self.db.add_track(audio.file_id, title, performer, audio.duration)
-            logging.info(f"Сохранен трек {title} - {performer}")
-            self.bot.send_message(message.chat.id, f"Трек сохранён в базу данных!")
-        except Exception as e:
-            logging.error(f"Ошибка при сохранении трека: {e}")
-            self.bot.send_message(message.chat.id, "Не удалось сохранить трек :(")
+        if not self.db.track_exists(audio.file.id):
+            try:
+                self.db.add_track(audio.file_id, title, performer, audio.duration)
+                logging.info(f"Сохранен трек {title} - {performer}")
+                self.bot.send_message(message.chat.id, f"Трек сохранён в базу данных!")
+            except Exception as e:
+                logging.error(f"Ошибка при сохранении трека: {e}")
+                self.bot.send_message(message.chat.id, "Не удалось сохранить трек :(")
+        else:
+            self.bot.send_message(message.chat.id, "ку файл уже есть")
 
     def list_tracks(self, message):
         try:
