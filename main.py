@@ -48,6 +48,13 @@ track2 = {
     "duration": 182,
 }
 
+track3 = {
+    "file_id": "CQACAgIAAxkBAAE5XANomjbLqBFMyrD2rl51Aw1ToPe4EwACVm8AApsyeUgiDrL8jRWk1TYE",
+    "title": "Stayin' alive",
+    "performer": "Bee Gees",
+    "duration": 287,
+}
+
 
 @bot.message_handler(content_types=["audio", "voice"])
 def get_file_id(message):
@@ -60,7 +67,7 @@ def get_file_id(message):
 @bot.message_handler(commands=["music"])
 def send_random_music(message):
     logging.info(f"/music от {message.from_user.id} @{message.from_user.username}")
-    chosen_track = random.choice([track1, track2])
+    chosen_track = random.choice([track1, track2, track3])
     try:
         bot.send_audio(
             chat_id=message.chat.id,
