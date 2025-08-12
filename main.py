@@ -159,7 +159,7 @@ class Bot:
         except Exception as e:
             print(f"Не удалось отправить сообщение: {e}")
         self.bot.infinity_polling(skip_pending=True)
-
+bot.delete_webhook()
 
 if __name__ == "__main__":
     Bot().run()
