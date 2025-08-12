@@ -1,14 +1,12 @@
 import logging
-import os
 import random
 
 import telebot as t
-from dotenv import load_dotenv
 from telebot import types
 
 from db import Database
+from config import *
 
-load_dotenv()
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
@@ -17,8 +15,6 @@ logging.basicConfig(
         logging.StreamHandler(),
     ],
 )
-
-BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 
 class Bot:
@@ -84,7 +80,7 @@ class Bot:
         else:
             title = "Голосовое сообщение"
             performer = "Неизвестный"
-        if not self.db.track_exists(audio.file.id):
+        if not self.db.track_exists(audio.file_id):
             try:
                 self.db.add_track(audio.file_id, title, performer, audio.duration)
                 logging.info(f"Сохранен трек {title} - {performer}")
@@ -93,7 +89,7 @@ class Bot:
                 logging.error(f"Ошибка при сохранении трека: {e}")
                 self.bot.send_message(message.chat.id, "Не удалось сохранить трек :(")
         else:
-            self.bot.send_message(message.chat.id, "ку файл уже есть")
+            self.bot.send_message(message.chat.id, "Файл уже сохранен")
 
     def list_tracks(self, message):
         try:
@@ -156,6 +152,10 @@ class Bot:
 
     def run(self):
         print("🚀 Бот запущен (polling)")
+        try:
+            self.bot.send_message(-1002515025726, f"Бот запущен и готов к работе! Версия {VERSION}")
+        except Exception as e:
+            print(f"Не удалось отправить сообщение: {e}")
         self.bot.infinity_polling(skip_pending=True)
 
 
