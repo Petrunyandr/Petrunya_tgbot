@@ -4,8 +4,8 @@ import random
 import telebot as t
 from telebot import types
 
-from db import Database
 from config import *
+from db import Database
 
 logging.basicConfig(
     level=logging.INFO,
@@ -59,9 +59,9 @@ class Bot:
                 "назуй иди",
             )
         )(self.mneme)
-        self.bot.message_handler(func=lambda m: m.text.lower() in ["сори", "сорян", "прости"])(
-            self.jdnd
-        )
+        self.bot.message_handler(
+            func=lambda m: m.text.lower() in ["сори", "сорян", "прости"]
+        )(self.jdnd)
         self.bot.message_handler(func=lambda m: m.text.lower() == "але")(self.ale)
 
     def start(self, message):
@@ -146,14 +146,16 @@ class Bot:
 
     def ale(self, message):
         self.bot.send_message(message.chat.id, "туда")
-    
+
     def shaverma(self, message):
         self.bot.send_message(message.chat.id, "ЛЕЕЕЕЕ БРАТКА ДЕРЖИ")
 
     def run(self):
         print("🚀 Бот запущен (polling)")
         try:
-            self.bot.send_message(-1002515025726, f"Бот запущен и готов к работе! Версия {VERSION}")
+            self.bot.send_message(
+                -1002515025726, f"Бот запущен и готов к работе! Версия {VERSION}"
+            )
         except Exception as e:
             print(f"Не удалось отправить сообщение: {e}")
         self.bot.infinity_polling(skip_pending=True)

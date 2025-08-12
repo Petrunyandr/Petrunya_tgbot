@@ -20,7 +20,9 @@ class Database:
             )
             db.commit()
 
-    def add_track(self, track_id: str, title: str, performer: str, duration: int) -> None:
+    def add_track(
+        self, track_id: str, title: str, performer: str, duration: int
+    ) -> None:
         with sqlite3.connect(self.db_path) as db:
             db.execute(
                 "INSERT OR REPLACE INTO tracks (track_id, title, performer, duration) VALUES (?, ?, ?, ?)",
@@ -41,5 +43,7 @@ class Database:
 
     def track_exists(self, track_id: str) -> bool:
         with sqlite3.connect(self.db_path) as db:
-            cursor = db.execute("SELECT 1 FROM tracks WHERE track_id = ? LIMIT 1", (track_id,))
+            cursor = db.execute(
+                "SELECT 1 FROM tracks WHERE track_id = ? LIMIT 1", (track_id,)
+            )
             return cursor.fetchone() is not None
