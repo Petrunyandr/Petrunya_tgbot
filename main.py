@@ -153,6 +153,10 @@ class Bot:
     def run(self):
         print("🚀 Бот запущен (polling)")
         try:
+            self.bot.delete_webhook()
+        except Exception as e:
+            print(f"Не удалось удалить вебхук: {e}")
+        try:
             self.bot.send_message(
                 -1002515025726, f"Бот запущен и готов к работе! Версия {VERSION}"
             )
