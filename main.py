@@ -164,6 +164,5 @@ class Bot:
             print(f"Не удалось отправить сообщение: {e}")
         self.bot.infinity_polling(skip_pending=True)
 
-
 if __name__ == "__main__":
     Bot().run()
