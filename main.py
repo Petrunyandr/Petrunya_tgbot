@@ -42,15 +42,14 @@ class Bot:
         self.bot.message_handler(content_types=["audio", "voice"])(self.get_file_id)
 
         self.bot.message_handler(
-            func=lambda m: m.text.lower() in ["пр", "ку", "qq", "pr", "qu", "ku"]
+            func=lambda m: m.text.lower() in ("пр", "ку", "qq", "pr", "qu", "ku")
         )(self.ku)
         self.bot.message_handler(
             func=lambda m: m.text.lower() in ("спс", "спасибо", "о спс")
         )(self.sps)
-        self.bot.message_handler(func=lambda m: m.text.lower() == "пр")(self.pr)
         self.bot.message_handler(
             func=lambda m: m.text.lower()
-            in ["ебало", "вальни ебало", "завали ебало", "ебло"]
+            in ("ебало", "вальни ебало", "завали ебало", "ебло")
         )(self.ebalo)
         self.bot.message_handler(
             func=lambda m: m.text.lower()
@@ -64,7 +63,7 @@ class Bot:
                 "назуй иди",
             )
         )(self.mneme)
-        self.bot.message_handler(func=lambda m: m.text.lower() in ["сори", "сорян"])(
+        self.bot.message_handler(func=lambda m: m.text.lower() in ["сори", "сорян", "прости"])(
             self.jdnd
         )
         self.bot.message_handler(func=lambda m: m.text.lower() == "але")(self.ale)
@@ -133,13 +132,10 @@ class Bot:
             self.bot.send_message(message.chat.id, "Ошибка при отправке музыки.")
 
     def ku(self, message):
-        self.bot.send_message(message.chat.id, "нет")
+        self.bot.send_message(message.chat.id, "ООООО ПР")
 
     def sps(self, message):
         self.bot.send_message(message.chat.id, "нез")
-
-    def pr(self, message):
-        self.bot.send_message(message.chat.id, "пр")
 
     def ebalo(self, message):
         self.bot.send_message(message.chat.id, "сам")
@@ -152,6 +148,9 @@ class Bot:
 
     def ale(self, message):
         self.bot.send_message(message.chat.id, "туда")
+    
+    def shaverma(self, message):
+        self.bot.send_message(message.chat.id, "ЛЕЕЕЕЕ БРАТКА ДЕРЖИ")
 
     def run(self):
         print("🚀 Бот запущен (polling)")
