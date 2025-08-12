@@ -93,7 +93,7 @@ def get_file_id(message):
 @bot.message_handler(commands=["music"])
 def send_random_music(message):
     logging.info(f"/music от {message.from_user.id} @{message.from_user.username}")
-        return
+       
     
     
     chosen_track = random.choice(list(saved_tracks.values()))
