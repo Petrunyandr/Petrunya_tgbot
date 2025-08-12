@@ -60,9 +60,13 @@ class Bot:
             )
         )(self.mneme)
         self.bot.message_handler(
-            func=lambda m: m.text.lower() in ["сори", "сорян", "прости"]
+            func=lambda m: m.text.lower() in ("сори", "сорян", "прости")
         )(self.jdnd)
         self.bot.message_handler(func=lambda m: m.text.lower() == "але")(self.ale)
+        self.bot.message_handler(
+            func=lambda m: m.text.lower()
+            in ("шаверма", "шавуху", "две в сырном", "мне в сырном")
+        )(self.ale)
 
     def start(self, message):
         self.bot.send_message(
@@ -163,6 +167,7 @@ class Bot:
         except Exception as e:
             print(f"Не удалось отправить сообщение: {e}")
         self.bot.infinity_polling(skip_pending=True)
+
 
 if __name__ == "__main__":
     Bot().run()
