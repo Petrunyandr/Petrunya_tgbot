@@ -1,7 +1,6 @@
 import logging
 import os
 import random
-
 import telebot as t
 from dotenv import load_dotenv
 from telebot import types
