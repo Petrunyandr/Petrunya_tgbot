@@ -66,7 +66,7 @@ class Bot:
         self.bot.message_handler(
             func=lambda m: m.text.lower()
             in ("шаверма", "шавуху", "две в сырном", "мне в сырном")
-        )(self.ale)
+        )(self.shaverma)
 
     def start(self, message):
         self.bot.send_message(
