@@ -1,10 +1,11 @@
 import logging
 import random
+import uuid
 
 import telebot as t
 from telebot import types
 
-from config import *
+from config import BOT_TOKEN, VERSION
 from db import Database
 
 logging.basicConfig(
@@ -21,138 +22,123 @@ class Bot:
     def __init__(self):
         self.bot = t.TeleBot(BOT_TOKEN)
         self.db = Database()
+        self.temp_photos = {}  # Для временного хранения фото перед подтверждением
         self.setup_commands()
+        self.setup_callbacks()
 
     def setup_commands(self):
         self.bot.set_my_commands(
             [
                 types.BotCommand("start", "начать работу 😁"),
-                types.BotCommand("music", "послушать музыку 🎵"),
-                types.BotCommand("list", "список треков 📜"),
+                types.BotCommand("list", "список фото 🖼️"),
+                types.BotCommand("photo", "случайное фото 🎲"),
             ]
         )
 
         self.bot.message_handler(commands=["start"])(self.start)
-        self.bot.message_handler(commands=["music"])(self.send_random_music)
-        self.bot.message_handler(commands=["list"])(self.list_tracks)
-        self.bot.message_handler(content_types=["audio", "voice"])(self.get_file_id)
+        self.bot.message_handler(commands=["list"])(self.list_photos)
+        self.bot.message_handler(commands=["photo"])(self.send_random_photo)
+        self.bot.message_handler(content_types=["photo"])(self.confirm_photo)
 
-        self.bot.message_handler(
-            func=lambda m: m.text.lower() in ("пр", "ку", "qq", "pr", "qu", "ku")
-        )(self.ku)
-        self.bot.message_handler(
-            func=lambda m: m.text.lower() in ("спс", "спасибо", "о спс")
-        )(self.sps)
-        self.bot.message_handler(
-            func=lambda m: m.text.lower()
-            in ("ебало", "вальни ебало", "завали ебало", "ебло")
-        )(self.ebalo)
-        self.bot.message_handler(
-            func=lambda m: m.text.lower()
-            in (
-                "иди нахуй",
-                "иди нахуц",
-                "иди назуй",
-                "иди в пизду",
-                "иди в пиздц",
-                "нахуй иди",
-                "назуй иди",
-            )
-        )(self.mneme)
-        self.bot.message_handler(
-            func=lambda m: m.text.lower() in ("сори", "сорян", "прости")
-        )(self.jdnd)
-        self.bot.message_handler(func=lambda m: m.text.lower() == "але")(self.ale)
-        self.bot.message_handler(
-            func=lambda m: m.text.lower()
-            in ("шаверма", "шавуху", "две в сырном", "мне в сырном")
-        )(self.shaverma)
 
     def start(self, message):
         self.bot.send_message(
-            message.chat.id, "Привет! Напиши /music, чтобы послушать музыку 🎧"
+            message.chat.id, "Привет! Отправь фото, чтобы сохранить его в базу данных 🖼️"
         )
 
-    def get_file_id(self, message):
-        audio = message.audio or message.voice
-        if not audio:
+    def confirm_photo(self, message):
+        photo = message.photo[-1]  # самое большое фото
+        file_id = photo.file_id
+
+        if self.db.photo_exists(file_id):
+            self.bot.send_message(message.chat.id, "Это фото уже сохранено в базе!")
             return
 
-        if message.audio:
-            title = audio.title or "Без названия"
-            performer = audio.performer or "Неизвестный исполнитель"
-        else:
-            title = "Голосовое сообщение"
-            performer = "Неизвестный"
-        if not self.db.track_exists(audio.file_id):
-            try:
-                self.db.add_track(audio.file_id, title, performer, audio.duration)
-                logging.info(f"Сохранен трек {title} - {performer}")
-                self.bot.send_message(message.chat.id, f"Трек сохранён в базу данных!")
-            except Exception as e:
-                logging.error(f"Ошибка при сохранении трека: {e}")
-                self.bot.send_message(message.chat.id, "Не удалось сохранить трек :(")
-        else:
-            self.bot.send_message(message.chat.id, "Файл уже сохранен")
+        # Создаем уникальный короткий ID для кнопки
+        short_id = str(uuid.uuid4())
+        self.temp_photos[short_id] = {
+            "file_id": file_id,
+            "username": message.from_user.username or "Unknown",
+            "caption": message.caption or "",
+        }
 
-    def list_tracks(self, message):
-        try:
-            tracks = self.db.get_tracks()
-            if not tracks:
-                self.bot.send_message(message.chat.id, "В коллекции пока нет треков 😢")
+        markup = types.InlineKeyboardMarkup()
+        markup.add(
+            types.InlineKeyboardButton(
+                "✅ Сохранить", callback_data=f"save_{short_id}"
+            ),
+            types.InlineKeyboardButton("❌ Отмена", callback_data=f"cancel_{short_id}"),
+        )
+
+        self.bot.send_message(
+            message.chat.id,
+            f"Вы хотите сохранить это фото в базу?\n\n{message.caption or ''}",
+            reply_markup=markup,
+        )
+
+    def send_random_photo(self, message):
+        photos = self.db.get_photos()
+        if not photos:
+            self.bot.send_message(message.chat.id, "В базе пока нет фото 😢")
+            return
+        chosen = random.choice(photos)
+        self.bot.send_photo(
+            chat_id=message.chat.id,
+            photo=chosen["file_id"],
+            caption=f"От {chosen['username']} ({chosen['date'][:16]})",
+        )
+
+    def setup_callbacks(self):
+        @self.bot.callback_query_handler(
+            func=lambda call: call.data.startswith(("save_", "cancel_"))
+        )
+        def handle_callback(call):
+            action, short_id = call.data.split("_", 1)
+            if short_id not in self.temp_photos:
+                self.bot.answer_callback_query(call.id, "Срок действия кнопки истек")
                 return
 
-            text = "🎵 Список треков:\n\n"
-            for i, tr in enumerate(tracks, 1):
-                text += f"{i}. {tr['title']} — {tr['performer']}\n"
+            data = self.temp_photos.pop(short_id)
+            file_id = data["file_id"]
+            username = data["username"]
+
+            if action == "save":
+                try:
+                    self.db.add_photo(file_id, "", username)
+                    self.bot.edit_message_text(
+                        "Фото успешно сохранено ✅",
+                        chat_id=call.message.chat.id,
+                        message_id=call.message.message_id,
+                    )
+                except Exception as e:
+                    logging.error(f"Ошибка при сохранении фото: {e}")
+                    self.bot.edit_message_text(
+                        "Не удалось сохранить фото :(",
+                        chat_id=call.message.chat.id,
+                        message_id=call.message.message_id,
+                    )
+            else:
+                self.bot.edit_message_text(
+                    "Сохранение фото отменено ❌",
+                    chat_id=call.message.chat.id,
+                    message_id=call.message.message_id,
+                )
+
+    def list_photos(self, message):
+        try:
+            photos = self.db.get_photos()
+            if not photos:
+                self.bot.send_message(message.chat.id, "В базе пока нет фото 😢")
+                return
+
+            text = "🖼️ Список фото:\n\n"
+            for i, p in enumerate(photos, 1):
+                text += f"{i}. {p['file_id']} — {p['username']} ({p['date'][:16]})\n"
 
             self.bot.send_message(message.chat.id, text)
         except Exception as e:
-            logging.error(f"Ошибка при получении списка треков: {e}")
-            self.bot.send_message(
-                message.chat.id, "Ошибка при получении списка треков."
-            )
-
-    def send_random_music(self, message):
-        try:
-            tracks = self.db.get_tracks()
-            if not tracks:
-                self.bot.send_message(message.chat.id, "В коллекции пока нет треков 😢")
-                return
-
-            chosen_track = random.choice(tracks)
-            self.bot.send_audio(
-                chat_id=message.chat.id,
-                audio=chosen_track["track_id"],
-                title=chosen_track["title"],
-                performer=chosen_track["performer"],
-                duration=chosen_track["duration"],
-                caption="лутай",
-            )
-        except Exception as e:
-            logging.error(f"Ошибка при отправке музыки: {e}")
-            self.bot.send_message(message.chat.id, "Ошибка при отправке музыки.")
-
-    def ku(self, message):
-        self.bot.send_message(message.chat.id, "ООООО ПР")
-
-    def sps(self, message):
-        self.bot.send_message(message.chat.id, "нез")
-
-    def ebalo(self, message):
-        self.bot.send_message(message.chat.id, "сам")
-
-    def mneme(self, message):
-        self.bot.send_message(message.chat.id, "не буду🤣🤣🤣")
-
-    def jdnd(self, message):
-        self.bot.send_message(message.chat.id, "прощон")
-
-    def ale(self, message):
-        self.bot.send_message(message.chat.id, "туда")
-
-    def shaverma(self, message):
-        self.bot.send_message(message.chat.id, "ЛЕЕЕЕЕ БРАТКА ДЕРЖИ")
+            logging.error(f"Ошибка при получении списка фото: {e}")
+            self.bot.send_message(message.chat.id, "Ошибка при получении списка фото.")
 
     def run(self):
         print("🚀 Бот запущен (polling)")
