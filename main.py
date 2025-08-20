@@ -1,13 +1,16 @@
 import logging
 import random
 import uuid
+import os
 
-import telebot as t
+import telebot
 from telebot import types
+from flask import Flask, request
 
 from config import BOT_TOKEN, VERSION
 from db import Database
 
+# --- Логирование ---
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
@@ -17,143 +20,135 @@ logging.basicConfig(
     ],
 )
 
+db = Database()
+temp_photos = {}  # Для временного хранения фото перед подтверждением
 
-class Bot:
-    def __init__(self):
-        self.bot = t.TeleBot(BOT_TOKEN)
-        self.db = Database()
-        self.temp_photos = {}  # Для временного хранения фото перед подтверждением
-        self.setup_commands()
-        self.setup_callbacks()
+app = Flask(__name__)
 
-    def setup_commands(self):
-        self.bot.set_my_commands(
-            [
-                types.BotCommand("start", "начать работу 😁"),
-                types.BotCommand("list", "список фото 🖼️"),
-                types.BotCommand("photo", "случайное фото 🎲"),
-            ]
-        )
+# --- Команды ---
+@bot.message_handler(commands=["start"])
+def start(message):
+    bot.send_message(
+        message.chat.id, "Привет! Отправь фото, чтобы сохранить его в базу данных 🖼️"
+    )
 
-        self.bot.message_handler(commands=["start"])(self.start)
-        self.bot.message_handler(commands=["list"])(self.list_photos)
-        self.bot.message_handler(commands=["photo"])(self.send_random_photo)
-        self.bot.message_handler(content_types=["photo"])(self.confirm_photo)
-
-
-    def start(self, message):
-        self.bot.send_message(
-            message.chat.id, "Привет! Отправь фото, чтобы сохранить его в базу данных 🖼️"
-        )
-
-    def confirm_photo(self, message):
-        photo = message.photo[-1]  # самое большое фото
-        file_id = photo.file_id
-
-        if self.db.photo_exists(file_id):
-            self.bot.send_message(message.chat.id, "Это фото уже сохранено в базе!")
-            return
-
-        # Создаем уникальный короткий ID для кнопки
-        short_id = str(uuid.uuid4())
-        self.temp_photos[short_id] = {
-            "file_id": file_id,
-            "username": message.from_user.username or "Unknown",
-            "caption": message.caption or "",
-        }
-
-        markup = types.InlineKeyboardMarkup()
-        markup.add(
-            types.InlineKeyboardButton(
-                "✅ Сохранить", callback_data=f"save_{short_id}"
-            ),
-            types.InlineKeyboardButton("❌ Отмена", callback_data=f"cancel_{short_id}"),
-        )
-
-        self.bot.send_message(
-            message.chat.id,
-            f"Вы хотите сохранить это фото в базу?\n\n{message.caption or ''}",
-            reply_markup=markup,
-        )
-
-    def send_random_photo(self, message):
-        photos = self.db.get_photos()
+@bot.message_handler(commands=["list"])
+def list_photos(message):
+    try:
+        photos = db.get_photos()
         if not photos:
-            self.bot.send_message(message.chat.id, "В базе пока нет фото 😢")
+            bot.send_message(message.chat.id, "В базе пока нет фото 😢")
             return
-        chosen = random.choice(photos)
-        self.bot.send_photo(
-            chat_id=message.chat.id,
-            photo=chosen["file_id"],
-            caption=f"От {chosen['username']} ({chosen['date'][:16]})",
-        )
 
-    def setup_callbacks(self):
-        @self.bot.callback_query_handler(
-            func=lambda call: call.data.startswith(("save_", "cancel_"))
-        )
-        def handle_callback(call):
-            action, short_id = call.data.split("_", 1)
-            if short_id not in self.temp_photos:
-                self.bot.answer_callback_query(call.id, "Срок действия кнопки истек")
-                return
+        text = "🖼️ Список фото:\n\n"
+        for i, p in enumerate(photos, 1):
+            text += f"{i}. {p['file_id']} — {p['username']} ({p['date'][:16]})\n"
 
-            data = self.temp_photos.pop(short_id)
-            file_id = data["file_id"]
-            username = data["username"]
+        bot.send_message(message.chat.id, text)
+    except Exception as e:
+        logging.error(f"Ошибка при получении списка фото: {e}")
+        bot.send_message(message.chat.id, "Ошибка при получении списка фото.")
 
-            if action == "save":
-                try:
-                    self.db.add_photo(file_id, "", username)
-                    self.bot.edit_message_text(
-                        "Фото успешно сохранено ✅",
-                        chat_id=call.message.chat.id,
-                        message_id=call.message.message_id,
-                    )
-                except Exception as e:
-                    logging.error(f"Ошибка при сохранении фото: {e}")
-                    self.bot.edit_message_text(
-                        "Не удалось сохранить фото :(",
-                        chat_id=call.message.chat.id,
-                        message_id=call.message.message_id,
-                    )
-            else:
-                self.bot.edit_message_text(
-                    "Сохранение фото отменено ❌",
-                    chat_id=call.message.chat.id,
-                    message_id=call.message.message_id,
-                )
+@bot.message_handler(commands=["photo"])
+def send_random_photo(message):
+    photos = db.get_photos()
+    if not photos:
+        bot.send_message(message.chat.id, "В базе пока нет фото 😢")
+        return
+    chosen = random.choice(photos)
+    bot.send_photo(
+        chat_id=message.chat.id,
+        photo=chosen["file_id"],
+        caption=f"От {chosen['username']} ({chosen['date'][:16]})",
+    )
 
-    def list_photos(self, message):
+# --- Получение фото и подтверждение ---
+@bot.message_handler(content_types=["photo"])
+def confirm_photo(message):
+    photo = message.photo[-1]  # самое большое фото
+    file_id = photo.file_id
+
+    if db.photo_exists(file_id):
+        bot.send_message(message.chat.id, "Это фото уже сохранено в базе!")
+        return
+
+    short_id = str(uuid.uuid4())
+    temp_photos[short_id] = {
+        "file_id": file_id,
+        "username": message.from_user.username or "Unknown",
+        "caption": message.caption or "",
+    }
+
+    markup = types.InlineKeyboardMarkup()
+    markup.add(
+        types.InlineKeyboardButton("✅ Сохранить", callback_data=f"save_{short_id}"),
+        types.InlineKeyboardButton("❌ Отмена", callback_data=f"cancel_{short_id}"),
+    )
+
+    bot.send_message(
+        message.chat.id,
+        f"Вы хотите сохранить это фото в базу?\n\n{message.caption or ''}",
+        reply_markup=markup,
+    )
+
+# --- Callback кнопки ---
+@bot.callback_query_handler(func=lambda call: call.data.startswith(("save_", "cancel_")))
+def handle_callback(call):
+    action, short_id = call.data.split("_", 1)
+    if short_id not in temp_photos:
+        bot.answer_callback_query(call.id, "Срок действия кнопки истек")
+        return
+
+    data = temp_photos.pop(short_id)
+    file_id = data["file_id"]
+    username = data["username"]
+
+    if action == "save":
         try:
-            photos = self.db.get_photos()
-            if not photos:
-                self.bot.send_message(message.chat.id, "В базе пока нет фото 😢")
-                return
-
-            text = "🖼️ Список фото:\n\n"
-            for i, p in enumerate(photos, 1):
-                text += f"{i}. {p['file_id']} — {p['username']} ({p['date'][:16]})\n"
-
-            self.bot.send_message(message.chat.id, text)
-        except Exception as e:
-            logging.error(f"Ошибка при получении списка фото: {e}")
-            self.bot.send_message(message.chat.id, "Ошибка при получении списка фото.")
-
-    def run(self):
-        print("🚀 Бот запущен (polling)")
-        try:
-            self.bot.delete_webhook()
-        except Exception as e:
-            print(f"Не удалось удалить вебхук: {e}")
-        try:
-            self.bot.send_message(
-                -1002515025726, f"Бот запущен и готов к работе! Версия {VERSION}"
+            db.add_photo(file_id, "", username)
+            bot.edit_message_text(
+                "Фото успешно сохранено ✅",
+                chat_id=call.message.chat.id,
+                message_id=call.message.message_id,
             )
         except Exception as e:
-            print(f"Не удалось отправить сообщение: {e}")
-        self.bot.infinity_polling(skip_pending=True)
+            logging.error(f"Ошибка при сохранении фото: {e}")
+            bot.edit_message_text(
+                "Не удалось сохранить фото :(",
+                chat_id=call.message.chat.id,
+                message_id=call.message.message_id,
+            )
+    else:
+        bot.edit_message_text(
+            "Сохранение фото отменено ❌",
+            chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+        )
 
+# --- Вебхук ---
+@app.route("/webhook", methods=["POST"])
+def webhook():
+    if request.headers.get("content-type") == "application/json":
+        json_str = request.get_data().decode("utf-8")
+        update = telebot.types.Update.de_json(json_str)
+        bot.process_new_updates([update])
+        return "ok", 200
+    else:
+        return "unsupported", 403
 
+# --- Установка вебхука при запуске ---
+def setup_webhook():
+    RENDER_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+    if not RENDER_HOSTNAME:
+        logging.error("Нет RENDER_EXTERNAL_HOSTNAME!")
+        return
+
+    WEBHOOK_URL = f"https://{RENDER_HOSTNAME}/webhook"
+    bot.remove_webhook()
+    bot.set_webhook(url=WEBHOOK_URL)
+    logging.info(f"Webhook установлен: {WEBHOOK_URL}")
+
+# --- Запуск Flask ---
 if __name__ == "__main__":
-    Bot().run()
+    setup_webhook()
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
