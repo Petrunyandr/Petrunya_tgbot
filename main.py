@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-import os
-import telebot as t
-from telebot import types
-from dotenv import load_dotenv
-=======
 import logging
 import random
 import uuid
@@ -25,97 +19,12 @@ logging.basicConfig(
         logging.StreamHandler(),
     ],
 )
->>>>>>> 169eb03f941a0ae22c8a62f7d47462038f4b3f58
 
+bot = telebot.TeleBot(BOT_TOKEN)
 db = Database()
-temp_photos = {}  # Для временного хранения фото перед подтверждением
-
-<<<<<<< HEAD
-load_dotenv()
-
-TOKEN = os.getenv('TELEGRAM_TOKEN')
-print(f"TOKEN: '{TOKEN}'")
-
-if not TOKEN:
-    raise ValueError("Токен не найден в переменных окружения. Проверьте файл .env")
-
-
-bot = t.TeleBot(TOKEN)
-
-
-
-commands = [
-    types.BotCommand("start", "Запустить бота"),
-]
-
-bot.set_my_commands(commands)
-
-@bot.message_handler(commands=['start'])
-def start(message):
-    bot.send_message(message.chat.id, "леее ку")
-
-
-photo_data = {}
-
-
-
-@bot.message_handler(content_types=['photo'])
-def handle_photo(message):
-    try:
-        file_id = message.photo[-1].file_id
-        photo_message_id = message.message_id
-        markup = types.InlineKeyboardMarkup()
-        button = types.InlineKeyboardButton("удалить фото", callback_data="delete")
-        bt2 = types.InlineKeyboardButton("отправить в базу данных", callback_data="save")
-        markup.row(button, bt2)
-        menu_msg = bot.reply_to(message.chat.id, f"Фото получено! file_id: {file_id}\nВыберите действие:", reply_markup=markup)
-        photo_data[message.chat.id] = {
-            'file_id': file_id,
-            'photo_message_id': photo_message_id,
-            'menu_message_id': menu_msg.message_id
-        }
-    except Exception as e:
-        bot.send_message(message.chat.id, f"Ошибка при обработке фото: {e}")
-
-
-
-@bot.callback_query_handler(func=lambda call: True)
-
-@bot.callback_query_handler(func=lambda call: True)
-def callback_query(call):
-    if call.data == "delete":
-        try:
-            data = photo_data.get(call.message.chat.id)
-            deleted = False
-            if data:
-            
-                if 'photo_message_id' in data:
-                    bot.delete_message(call.message.chat.id, data['photo_message_id'])
-                    deleted = True
-                
-                if 'menu_message_id' in data:
-                    bot.delete_message(call.message.chat.id, data['menu_message_id'])
-                    deleted = True
-                if deleted:
-                    bot.answer_callback_query(call.id, "Фото и меню удалены")
-                else:
-                    bot.answer_callback_query(call.id, "Нет сообщений для удаления")
-                del photo_data[call.message.chat.id]
-            else:
-                bot.answer_callback_query(call.id, "Нет фото для удаления")
-        except Exception as e:
-            bot.answer_callback_query(call.id, f"Ошибка удаления: {e}")
-    elif call.data == "save":
-        data = photo_data.get(call.message.chat.id)
-        if data and 'file_id' in data:
-            bot.answer_callback_query(call.id, "автор не изучил бд сори")
-        
-        else:
-            bot.answer_callback_query(call.id, "Нет сохранённого file_id для этого чата")
-    else:
-        bot.answer_callback_query(call.id, "Неизвестное действие")
-=======
 app = Flask(__name__)
+
+temp_photos = {}  # временное хранилище для подтверждения фото
 
 # --- Команды ---
 @bot.message_handler(commands=["start"])
@@ -171,8 +80,6 @@ def confirm_photo(message):
         "caption": message.caption or "",
     }
 
-git fetch origin
-git reset --hard origin/main
     markup = types.InlineKeyboardMarkup()
     markup.add(
         types.InlineKeyboardButton("✅ Сохранить", callback_data=f"save_{short_id}"),
@@ -218,7 +125,6 @@ def handle_callback(call):
             chat_id=call.message.chat.id,
             message_id=call.message.message_id,
         )
->>>>>>> 169eb03f941a0ae22c8a62f7d47462038f4b3f58
 
 # --- Вебхук ---
 @app.route("/webhook", methods=["POST"])
@@ -231,12 +137,6 @@ def webhook():
     else:
         return "unsupported", 403
 
-<<<<<<< HEAD
-
-
-
-bot.polling(none_stop=True)
-=======
 # --- Установка вебхука при запуске ---
 def setup_webhook():
     RENDER_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
@@ -253,4 +153,3 @@ def setup_webhook():
 if __name__ == "__main__":
     setup_webhook()
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
->>>>>>> 169eb03f941a0ae22c8a62f7d47462038f4b3f58
