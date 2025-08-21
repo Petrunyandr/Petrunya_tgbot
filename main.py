@@ -26,6 +26,18 @@ app = Flask(__name__)
 
 temp_photos = {}  # временное хранилище для подтверждения фото
 
+commands = [
+    types.BotCommand("start", "Запустить бота"),
+    types.BotCommand("list", "Список сохранённых фото"),
+    types.BotCommand("photo", "Получить случайное фото"),
+]
+
+bot.set_my_commands(commands)
+
+
+
+
+
 # --- Команды ---
 @bot.message_handler(commands=["start"])
 def start(message):
