@@ -10,6 +10,7 @@ from flask import Flask, request
 from config import TELEGRAM_TOKEN, VERSION
 from db import Database
 
+
 # --- Логирование ---
 logging.basicConfig(
     level=logging.INFO,
