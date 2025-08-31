@@ -7,7 +7,7 @@ import telebot
 from telebot import types
 from flask import Flask, request
 
-from config import BOT_TOKEN, VERSION
+from config import TELEGRAM_TOKEN, VERSION
 from db import Database
 
 # --- Логирование ---
@@ -20,7 +20,7 @@ logging.basicConfig(
     ],
 )
 
-bot = telebot.TeleBot(BOT_TOKEN)
+bot = telebot.TeleBot(TELEGRAM_TOKEN)
 db = Database()
 app = Flask(__name__)
 

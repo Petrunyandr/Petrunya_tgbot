@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 
-VERSION = "x^2+5x-6=0"
+DISCORD_TOKEN = os.environ.get("DISCORD_TOKEN")
+
+VERSION = "1^2"
